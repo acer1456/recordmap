@@ -165,21 +165,25 @@ If you want to use a different repository name:
 This application supports multiple languages with full internationalization:
 
 ### Supported Languages
+
 - **繁體中文 (zh-TW)** - Traditional Chinese (Default)
 - **English (en)** - English
 
 ### Language Features
+
 - **Automatic Detection**: Detects browser language preference
 - **Persistent Selection**: Remembers user's language choice
 - **Real-time Switching**: Instant language switching without page reload
 - **Complete Coverage**: All UI text, messages, and labels are translated
 
 ### How to Use
+
 1. Click the language switcher button in the header (🇹🇼 中文 / 🇺🇸 EN)
 2. The interface will instantly switch to the selected language
 3. Your language preference is automatically saved
 
 ### Adding New Languages
+
 To add support for additional languages:
 
 1. Create a new JSON file in `src/i18n/locales/` (e.g., `fr.json` for French)
@@ -193,21 +197,22 @@ The application provides multiple export options to save and share your address 
 ### Export Formats
 
 - **📊 CSV Format**: Tabular data with address, latitude, and longitude columns
+
   - Compatible with Excel, Google Sheets, and other spreadsheet applications
   - Perfect for data analysis and reporting
-
 - **📄 JSON Format**: Structured data format
+
   - Complete address objects with all properties
   - Ideal for integration with other applications
   - Includes status information and coordinates
-
 - **🗺️ Static Map Image**: Google Maps static image with markers
+
   - High-quality 800x600 pixel image
   - Includes all address markers on the map
   - Opens in new tab for immediate viewing
   - Perfect for presentations and documentation
-
 - **🌍 KML Format**: Geographic data format
+
   - Compatible with Google Earth and Google My Maps
   - Standard format for geographic information systems
   - Includes all address points with coordinates
@@ -226,7 +231,6 @@ The application provides multiple export options to save and share your address 
 - **Hidden by Default**: Export options are hidden when no addresses are added
 - **Auto-Show**: Export section appears automatically once the first address is added
 - **Always Available**: Export options remain visible as long as addresses exist### Usage Examples
-
 - **CSV**: Import into Excel for data analysis (Chinese characters properly encoded)
 - **JSON**: Use in web applications or data processing scripts
 - **Static Map**: View immediately in new tab or save the image
@@ -239,7 +243,7 @@ The application provides multiple export options to save and share your address 
 - **File Names**: All exported files have descriptive names with timestamps
 - **API Limits**: Static map export requires valid Google Maps API key
 
-## �📱 Mobile Features
+## 🀽� Mobile Features
 
 - **Native App Integration**: Direct opening in Google Maps mobile app
 - **Touch Optimized**: Responsive design for mobile devices
@@ -283,6 +287,10 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 **Live Demo**: [https://yourusername.github.io/recordmap/](https://yourusername.github.io/recordmap/)
+
+---
+
+📖 **查看繁體中文版**: [README-zh-TW.md](README-zh-TW.md)
 
 ```
 
