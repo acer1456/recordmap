@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -148,6 +148,77 @@ function App() {
     setError('');
   };
 
+  // Export functions
+  const exportAsCSV = useCallback(() => {
+    const csvContent = [
+      ['Address', 'Latitude', 'Longitude'].join(','),
+      ...addresses.map(addr => [addr.address, addr.lat, addr.lng].join(','))
+    ].join('\n');
+
+    // Add UTF-8 BOM to fix Chinese character encoding issues in Excel
+    const BOM = '\uFEFF';
+    const csvWithBOM = BOM + csvContent;
+
+    const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'addresses.csv';
+    link.click();
+  }, [addresses]);
+
+  const exportAsJSON = useCallback(() => {
+    const jsonContent = JSON.stringify(addresses, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'addresses.json';
+    link.click();
+  }, [addresses]);
+
+  const generateStaticMapURL = useCallback(() => {
+    if (addresses.length === 0) return '';
+
+    const center = addresses.length === 1
+      ? `${addresses[0].lat},${addresses[0].lng}`
+      : '25.0330,121.5654'; // Default Taipei center
+
+    const markers = addresses.map(addr =>
+      `markers=color:red%7C${addr.lat},${addr.lng}`
+    ).join('&');
+
+    return `https://maps.googleapis.com/maps/api/staticmap?center=${center}&zoom=12&size=800x600&${markers}&key=${apiKey}`;
+  }, [addresses, apiKey]);
+
+  const exportStaticMap = useCallback(() => {
+    const staticMapURL = generateStaticMapURL();
+    if (staticMapURL) {
+      // Open in new tab instead of downloading
+      window.open(staticMapURL, '_blank');
+    }
+  }, [generateStaticMapURL]);
+
+  const exportAsKML = useCallback(() => {
+    const kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Address Map Export</name>
+    ${addresses.map((addr) => `
+    <Placemark>
+      <name>${addr.address}</name>
+      <Point>
+        <coordinates>${addr.lng},${addr.lat},0</coordinates>
+      </Point>
+    </Placemark>`).join('')}
+  </Document>
+</kml>`;
+
+    const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'addresses.kml';
+    link.click();
+  }, [addresses]);
+
   const removeAddress = (index: number) => {
     setAddresses(addresses.filter((_, i) => i !== index));
   };
@@ -263,6 +334,43 @@ function App() {
 
           {/* Input Section - Middle */}
           <section className="input-section">
+            {/* Export Section - Only show when addresses exist */}
+            {addresses.length > 0 && (
+              <div className="export-section">
+                <h3>📤 {t('export.title')}</h3>
+                <div className="export-buttons">
+                  <button
+                    className="export-btn"
+                    onClick={exportAsCSV}
+                    title={t('export.csvTitle')}
+                  >
+                    📊 {t('export.csv')}
+                  </button>
+                  <button
+                    className="export-btn"
+                    onClick={exportAsJSON}
+                    title={t('export.jsonTitle')}
+                  >
+                    📄 {t('export.json')}
+                  </button>
+                  <button
+                    className="export-btn"
+                    onClick={exportStaticMap}
+                    title={t('export.mapTitle')}
+                  >
+                    🗺️ {t('export.map')}
+                  </button>
+                  <button
+                    className="export-btn"
+                    onClick={exportAsKML}
+                    title={t('export.kmlTitle')}
+                  >
+                    🌍 {t('export.kml')}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="button-group-top">
               <button
                 className={`add-btn ${isLoading ? 'loading' : ''}`}

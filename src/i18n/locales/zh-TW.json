@@ -35,5 +35,16 @@
   "language": {
     "switchToChinese": "繁體中文",
     "switchToEnglish": "English"
+  },
+  "export": {
+    "title": "匯出選項",
+    "csv": "匯出為CSV",
+    "csvTitle": "將地址匯出為CSV文件",
+    "json": "匯出為JSON",
+    "jsonTitle": "將地址匯出為JSON文件",
+    "map": "檢視地圖影像",
+    "mapTitle": "在新分頁中開啟包含標記的靜態地圖影像",
+    "kml": "匯出為KML",
+    "kmlTitle": "將地址匯出為KML文件供Google Earth使用"
   }
 }

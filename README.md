@@ -5,6 +5,7 @@ A modern, responsive React application that allows users to input multiple addre
 ## ✨ Features
 
 - **🌐 Internationalization (i18n)**: Full support for Traditional Chinese and English with easy language switching
+- **📤 Export Functionality**: Multiple export options including CSV, JSON, static map images, and KML files
 - **Progressive Web App (PWA)**: Installable app with offline support, service worker caching, and native app-like experience
 - **Modern UI Design**: Beautiful gradient backgrounds and card-based layout
 - **Responsive Design**: Fully responsive across all devices (desktop, tablet, mobile)
@@ -185,7 +186,60 @@ To add support for additional languages:
 2. Add the language to the resources in `src/i18n/i18n.ts`
 3. Update the language switcher component to include the new language option
 
-## 📱 Mobile Features
+## � Export Functionality
+
+The application provides multiple export options to save and share your address data:
+
+### Export Formats
+
+- **📊 CSV Format**: Tabular data with address, latitude, and longitude columns
+  - Compatible with Excel, Google Sheets, and other spreadsheet applications
+  - Perfect for data analysis and reporting
+
+- **📄 JSON Format**: Structured data format
+  - Complete address objects with all properties
+  - Ideal for integration with other applications
+  - Includes status information and coordinates
+
+- **🗺️ Static Map Image**: Google Maps static image with markers
+  - High-quality 800x600 pixel image
+  - Includes all address markers on the map
+  - Opens in new tab for immediate viewing
+  - Perfect for presentations and documentation
+
+- **🌍 KML Format**: Geographic data format
+  - Compatible with Google Earth and Google My Maps
+  - Standard format for geographic information systems
+  - Includes all address points with coordinates
+
+### How to Export
+
+1. **Add Addresses**: First, input and add the addresses you want to export
+2. **Export Options Appear**: The export section will automatically appear above the input buttons once addresses are added
+3. **Choose Format**: Click on the desired export button in the Export Options section
+4. **View/Download**:
+   - CSV, JSON, KML files will be automatically downloaded
+   - Static map image will open in a new tab for immediate viewing
+
+### Export Section Visibility
+
+- **Hidden by Default**: Export options are hidden when no addresses are added
+- **Auto-Show**: Export section appears automatically once the first address is added
+- **Always Available**: Export options remain visible as long as addresses exist### Usage Examples
+
+- **CSV**: Import into Excel for data analysis (Chinese characters properly encoded)
+- **JSON**: Use in web applications or data processing scripts
+- **Static Map**: View immediately in new tab or save the image
+- **KML**: Open in Google Earth for 3D visualization
+
+### Technical Notes
+
+- **CSV Encoding**: Uses UTF-8 BOM to ensure proper display of Chinese characters in Excel
+- **Static Map**: Opens in new tab for immediate viewing (right-click to save image)
+- **File Names**: All exported files have descriptive names with timestamps
+- **API Limits**: Static map export requires valid Google Maps API key
+
+## �📱 Mobile Features
 
 - **Native App Integration**: Direct opening in Google Maps mobile app
 - **Touch Optimized**: Responsive design for mobile devices

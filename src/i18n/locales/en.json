@@ -35,5 +35,16 @@
   "language": {
     "switchToChinese": "繁體中文",
     "switchToEnglish": "English"
+  },
+  "export": {
+    "title": "Export Options",
+    "csv": "Export as CSV",
+    "csvTitle": "Export addresses as CSV file",
+    "json": "Export as JSON",
+    "jsonTitle": "Export addresses as JSON file",
+    "map": "View Map Image",
+    "mapTitle": "Open static map image with markers in new tab",
+    "kml": "Export as KML",
+    "kmlTitle": "Export addresses as KML file for Google Earth"
   }
 }
