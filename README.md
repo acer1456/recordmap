@@ -6,6 +6,8 @@ A modern, responsive React application that allows users to input multiple addre
 
 - **🌐 Internationalization (i18n)**: Full support for Traditional Chinese and English with easy language switching
 - **📤 Export Functionality**: Multiple export options including CSV, JSON, static map images, and KML files
+- **🎯 Address Grouping**: Advanced grouping algorithms with distance, time, and minimum distance clustering options
+- **📊 Real-time Address Counter**: Live count of addresses in input field with processing hints
 - **Progressive Web App (PWA)**: Installable app with offline support, service worker caching, and native app-like experience
 - **Modern UI Design**: Beautiful gradient backgrounds and card-based layout
 - **Responsive Design**: Fully responsive across all devices (desktop, tablet, mobile)
@@ -137,6 +139,27 @@ If you want to use a different repository name:
        publish_dir: ./dist
        cname: your-custom-domain.com  # Optional: for custom domain
    ```
+
+## 🎯 Advanced Features
+
+### Address Grouping System
+The app provides three powerful grouping algorithms to organize addresses based on geographical proximity:
+
+- **Distance Grouping**: Groups addresses within a specified distance threshold
+- **Time Grouping**: Groups addresses based on estimated travel time (assuming 30 km/h average speed)
+- **Minimum Distance Clustering**: Intelligent clustering that finds optimal groups by minimizing distances between addresses
+
+**Features:**
+- Real-time group visualization with color-coded markers
+- Adjustable thresholds with live preview
+- Group statistics and management
+- Radius constraint for fine-tuning group boundaries
+
+### Real-time Address Counter
+- **Live Count Display**: Shows the number of addresses currently in the input field
+- **Smart Filtering**: Only counts non-empty lines, ignoring whitespace
+- **Processing Hints**: Displays helpful messages about address processing status
+- **Instant Updates**: Counter updates immediately as you type or paste addresses
 
 ## 🔧 Available Scripts
 

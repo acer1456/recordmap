@@ -18,6 +18,10 @@
     "placeholder": "輸入地址（每行一個）：",
     "placeholderExamples": "台北101, 台灣\n東京鐵塔, 日本\n艾菲爾鐵塔, 法國"
   },
+  "input": {
+    "addressCount": "輸入框中的地址數",
+    "addressCountHint": "個地址準備處理"
+  },
   "errors": {
     "geolocationNotSupported": "此瀏覽器不支持地理定位。",
     "locationAccessDenied": "用戶拒絕位置訪問。",
@@ -46,5 +50,19 @@
     "mapTitle": "在新分頁中開啟包含標記的靜態地圖影像",
     "kml": "匯出為KML",
     "kmlTitle": "將地址匯出為KML文件供Google Earth使用"
+  },
+  "grouping": {
+    "title": "地址分組",
+    "enable": "啟用分組",
+    "mode": "分組依據",
+    "distance": "距離",
+    "time": "時間",
+    "cluster": "最小距離",
+    "distanceThreshold": "距離閾值",
+    "timeThreshold": "時間閾值",
+    "clusterThreshold": "聚合距離",
+    "radiusThreshold": "半徑閾值",
+    "groups": "分組數",
+    "totalAddresses": "總地址數"
   }
 }

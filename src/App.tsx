@@ -9,6 +9,14 @@ interface Address {
   lat: number;
   lng: number;
   status: 'pending' | 'success' | 'error';
+  groupId?: number;
+}
+
+interface AddressGroup {
+  id: number;
+  addresses: Address[];
+  color: string;
+  center: { lat: number; lng: number };
 }
 
 const containerStyle = {
@@ -32,6 +40,15 @@ function App() {
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number | null>(null);
   const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Grouping states
+  const [isGroupingEnabled, setIsGroupingEnabled] = useState(false);
+  const [groupingMode, setGroupingMode] = useState<'distance' | 'time' | 'cluster'>('distance');
+  const [distanceThreshold, setDistanceThreshold] = useState(5); // km
+  const [timeThreshold, setTimeThreshold] = useState(30); // minutes
+  const [radiusThreshold, setRadiusThreshold] = useState(2); // km - radius for circular grouping
+  const [clusterThreshold, setClusterThreshold] = useState(1); // km - minimum distance for clustering
+  const [addressGroups, setAddressGroups] = useState<AddressGroup[]>([]);
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -147,6 +164,217 @@ function App() {
     setUserLocation(null);
     setError('');
   };
+
+  // Grouping functions
+  const calculateDistance = useCallback((lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }, []);
+
+  const generateColor = useCallback((index: number): string => {
+    // Generate distinct colors using HSL color space
+    const hue = (index * 137.5) % 360; // Golden angle approximation for good distribution
+    const saturation = 70 + (index % 3) * 10; // Vary saturation slightly
+    const lightness = 45 + (index % 2) * 10; // Vary lightness slightly
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  }, []);
+
+  const performClustering = useCallback((addresses: Address[]): AddressGroup[] => {
+    const groups: AddressGroup[] = [];
+
+    for (const address of addresses) {
+      let bestGroup: AddressGroup | null = null;
+      let minDistance = Infinity;
+
+      // Find the closest group
+      for (const group of groups) {
+        const distance = calculateDistance(
+          address.lat, address.lng,
+          group.center.lat, group.center.lng
+        );
+
+        if (distance < minDistance && distance <= clusterThreshold) {
+          minDistance = distance;
+          bestGroup = group;
+        }
+      }
+
+      if (bestGroup) {
+        // Add to existing group
+        bestGroup.addresses.push(address);
+
+        // Recalculate center
+        const newLat = bestGroup.addresses.reduce((sum, addr) => sum + addr.lat, 0) / bestGroup.addresses.length;
+        const newLng = bestGroup.addresses.reduce((sum, addr) => sum + addr.lng, 0) / bestGroup.addresses.length;
+        bestGroup.center = { lat: newLat, lng: newLng };
+      } else {
+        // Create new group
+        groups.push({
+          id: groups.length,
+          addresses: [address],
+          color: generateColor(groups.length),
+          center: { lat: address.lat, lng: address.lng }
+        });
+      }
+    }
+
+    return groups;
+  }, [clusterThreshold, calculateDistance, generateColor]);
+
+  const applyRadiusConstraint = useCallback((groups: AddressGroup[]): AddressGroup[] => {
+    const finalGroups: AddressGroup[] = [];
+    const processedAddresses = new Set<string>();
+
+    for (const group of groups) {
+      const groupAddresses = group.addresses.filter(addr => !processedAddresses.has(addr.address));
+      if (groupAddresses.length === 0) continue;
+
+      // Calculate initial center
+      let centerLat = groupAddresses.reduce((sum, addr) => sum + addr.lat, 0) / groupAddresses.length;
+      let centerLng = groupAddresses.reduce((sum, addr) => sum + addr.lng, 0) / groupAddresses.length;
+
+      // Filter addresses within radius
+      const withinRadius = groupAddresses.filter(addr => {
+        const distance = calculateDistance(centerLat, centerLng, addr.lat, addr.lng);
+        return distance <= radiusThreshold;
+      });
+
+      if (withinRadius.length > 0) {
+        // Recalculate center with addresses within radius
+        const newCenterLat = withinRadius.reduce((sum, addr) => sum + addr.lat, 0) / withinRadius.length;
+        const newCenterLng = withinRadius.reduce((sum, addr) => sum + addr.lng, 0) / withinRadius.length;
+
+        finalGroups.push({
+          id: finalGroups.length,
+          addresses: withinRadius,
+          color: generateColor(finalGroups.length),
+          center: { lat: newCenterLat, lng: newCenterLng }
+        });
+
+        // Mark processed addresses
+        withinRadius.forEach(addr => processedAddresses.add(addr.address));
+      }
+    }
+
+    // Handle any remaining ungrouped addresses
+    const remainingAddresses = addresses.filter(addr =>
+      addr.status === 'success' && !processedAddresses.has(addr.address)
+    );
+
+    for (const addr of remainingAddresses) {
+      finalGroups.push({
+        id: finalGroups.length,
+        addresses: [addr],
+        color: generateColor(finalGroups.length),
+        center: { lat: addr.lat, lng: addr.lng }
+      });
+    }
+
+    return finalGroups;
+  }, [addresses, radiusThreshold, calculateDistance, generateColor]);
+
+  const groupAddresses = useCallback(() => {
+    const successAddresses = addresses.filter(addr => addr.status === 'success');
+    if (successAddresses.length === 0) return;
+
+    let groups: AddressGroup[] = [];
+
+    if (groupingMode === 'cluster') {
+      // Minimum distance clustering algorithm
+      groups = performClustering(successAddresses);
+    } else {
+      // Original distance/time based grouping
+      const visited = new Set<number>();
+
+      for (let i = 0; i < successAddresses.length; i++) {
+        if (visited.has(i)) continue;
+
+        const currentGroup: Address[] = [successAddresses[i]];
+        visited.add(i);
+
+        for (let j = i + 1; j < successAddresses.length; j++) {
+          if (visited.has(j)) continue;
+
+          const distance = calculateDistance(
+            successAddresses[i].lat, successAddresses[i].lng,
+            successAddresses[j].lat, successAddresses[j].lng
+          );
+
+          let shouldGroup = false;
+          if (groupingMode === 'distance') {
+            shouldGroup = distance <= distanceThreshold;
+          } else {
+            // Estimate time based on distance (assuming average speed of 30 km/h for urban areas)
+            const estimatedTime = (distance / 30) * 60; // Convert to minutes
+            shouldGroup = estimatedTime <= timeThreshold;
+          }
+
+          if (shouldGroup) {
+            currentGroup.push(successAddresses[j]);
+            visited.add(j);
+          }
+        }
+
+        if (currentGroup.length > 0) {
+          // Calculate group center
+          const avgLat = currentGroup.reduce((sum, addr) => sum + addr.lat, 0) / currentGroup.length;
+          const avgLng = currentGroup.reduce((sum, addr) => sum + addr.lng, 0) / currentGroup.length;
+
+          groups.push({
+            id: groups.length,
+            addresses: currentGroup,
+            color: generateColor(groups.length),
+            center: { lat: avgLat, lng: avgLng }
+          });
+        }
+      }
+    }
+
+    // Apply radius constraint to refine groups (only for distance/time modes)
+    const refinedGroups = groupingMode === 'cluster' ? groups : applyRadiusConstraint(groups);
+
+    // Update addresses with refined group IDs
+    const updatedAddresses = addresses.map(addr => {
+      if (addr.status === 'success') {
+        const group = refinedGroups.find(g => g.addresses.some(a => a.address === addr.address));
+        return { ...addr, groupId: group?.id };
+      }
+      return addr;
+    });
+
+    setAddresses(updatedAddresses);
+    setAddressGroups(refinedGroups);
+  }, [addresses, groupingMode, distanceThreshold, timeThreshold, radiusThreshold, clusterThreshold, calculateDistance, generateColor, performClustering, applyRadiusConstraint]);
+
+  const toggleGrouping = useCallback(() => {
+    if (!isGroupingEnabled) {
+      groupAddresses();
+    } else {
+      // Clear grouping
+      const clearedAddresses = addresses.map(addr => ({ ...addr, groupId: undefined }));
+      setAddresses(clearedAddresses);
+      setAddressGroups([]);
+    }
+    setIsGroupingEnabled(!isGroupingEnabled);
+  }, [isGroupingEnabled, groupAddresses, addresses]);
+
+  const updateGrouping = useCallback(() => {
+    if (isGroupingEnabled) {
+      groupAddresses();
+    }
+  }, [isGroupingEnabled, groupAddresses]);
+
+  // Calculate address count from input
+  const getInputAddressCount = useCallback(() => {
+    const lines = inputAddresses.split('\n').filter(line => line.trim().length > 0);
+    return lines.length;
+  }, [inputAddresses]);
 
   // Export functions
   const exportAsCSV = useCallback(() => {
@@ -288,25 +516,30 @@ function App() {
                   >
                     {addresses
                       .filter(addr => addr.status === 'success')
-                      .map((addr, index) => (
-                        <Marker
-                          key={index}
-                          position={{ lat: addr.lat, lng: addr.lng }}
-                          title={addr.address}
-                          onClick={() => handleMarkerClick(index)}
-                          icon={{
-                            url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-                              <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                                <text x="16" y="24" text-anchor="middle" fill="${
-                                  addr.address.includes('Current Location') ? '#10b981' : '#6366f1'
-                                }" font-family="Arial" font-size="24" font-weight="bold">📍</text>
-                              </svg>
-                            `)}`,
-                            scaledSize: new window.google.maps.Size(32, 32),
-                            anchor: new window.google.maps.Point(16, 32)
-                          }}
-                        />
-                      ))}
+                      .map((addr, index) => {
+                        const groupColor = addr.groupId !== undefined && addressGroups[addr.groupId] 
+                          ? addressGroups[addr.groupId].color 
+                          : (addr.address.includes('Current Location') ? '#10b981' : '#6366f1');
+                        
+                        return (
+                          <Marker
+                            key={index}
+                            position={{ lat: addr.lat, lng: addr.lng }}
+                            title={addr.address}
+                            onClick={() => handleMarkerClick(index)}
+                            icon={{
+                              url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+                                <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                                  <circle cx="16" cy="16" r="14" fill="${groupColor}" stroke="white" stroke-width="2"/>
+                                  <text x="16" y="22" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="bold">📍</text>
+                                </svg>
+                              `)}`,
+                              scaledSize: new window.google.maps.Size(32, 32),
+                              anchor: new window.google.maps.Point(16, 32)
+                            }}
+                          />
+                        );
+                      })}
                       {selectedMarkerIndex !== null && addresses[selectedMarkerIndex] && (
                         <InfoWindow
                           position={{
@@ -371,6 +604,109 @@ function App() {
               </div>
             )}
 
+            {/* Grouping Section - Only show when addresses exist */}
+            {addresses.length > 0 && (
+              <div className="grouping-section">
+                <h3>🎯 {t('grouping.title')}</h3>
+                <div className="grouping-controls">
+                  <div className="grouping-toggle">
+                    <label className="toggle-label">
+                      <input
+                        type="checkbox"
+                        checked={isGroupingEnabled}
+                        onChange={toggleGrouping}
+                      />
+                      <span className="toggle-slider"></span>
+                      {t('grouping.enable')}
+                    </label>
+                  </div>
+                  {isGroupingEnabled && (
+                    <div className="grouping-options">
+                      <div className="grouping-mode">
+                        <label>{t('grouping.mode')}:</label>
+                        <select
+                          value={groupingMode}
+                          onChange={(e) => setGroupingMode(e.target.value as 'distance' | 'time' | 'cluster')}
+                        >
+                          <option value="distance">{t('grouping.distance')}</option>
+                          <option value="time">{t('grouping.time')}</option>
+                          <option value="cluster">{t('grouping.cluster')}</option>
+                        </select>
+                      </div>
+                      {groupingMode === 'distance' && (
+                        <div className="threshold-control">
+                          <label>{t('grouping.distanceThreshold')}: {distanceThreshold} km</label>
+                          <input
+                            type="range"
+                            min="0.1"
+                            max="10"
+                            step="0.1"
+                            value={distanceThreshold}
+                            onChange={(e) => {
+                              setDistanceThreshold(parseFloat(e.target.value));
+                              setTimeout(updateGrouping, 300); // Debounce updates
+                            }}
+                          />
+                        </div>
+                      )}
+                      {groupingMode === 'time' && (
+                        <div className="threshold-control">
+                          <label>{t('grouping.timeThreshold')}: {timeThreshold} min</label>
+                          <input
+                            type="range"
+                            min="1"
+                            max="60"
+                            step="1"
+                            value={timeThreshold}
+                            onChange={(e) => {
+                              setTimeThreshold(parseInt(e.target.value));
+                              setTimeout(updateGrouping, 300); // Debounce updates
+                            }}
+                          />
+                        </div>
+                      )}
+                      {groupingMode === 'cluster' && (
+                        <div className="threshold-control">
+                          <label>{t('grouping.clusterThreshold')}: {clusterThreshold} km</label>
+                          <input
+                            type="range"
+                            min="0.1"
+                            max="5"
+                            step="0.1"
+                            value={clusterThreshold}
+                            onChange={(e) => {
+                              setClusterThreshold(parseFloat(e.target.value));
+                              setTimeout(updateGrouping, 300); // Debounce updates
+                            }}
+                          />
+                        </div>
+                      )}
+                      {(groupingMode === 'distance' || groupingMode === 'time') && (
+                        <div className="threshold-control">
+                          <label>{t('grouping.radiusThreshold')}: {radiusThreshold} km</label>
+                          <input
+                            type="range"
+                            min="0.1"
+                            max="5"
+                            step="0.1"
+                            value={radiusThreshold}
+                            onChange={(e) => {
+                              setRadiusThreshold(parseFloat(e.target.value));
+                              setTimeout(updateGrouping, 300); // Debounce updates
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="group-stats">
+                        <span>{t('grouping.groups')}: {addressGroups.length}</span>
+                        <span>{t('grouping.totalAddresses')}: {addresses.filter(addr => addr.status === 'success').length}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="button-group-top">
               <button
                 className={`add-btn ${isLoading ? 'loading' : ''}`}
@@ -399,6 +735,17 @@ function App() {
               )}
             </div>
             <div className="input-group">
+              {/* Address Count Display */}
+              <div className="address-count-display">
+                <span className="address-count-text">
+                  📝 {t('input.addressCount')}: <strong>{getInputAddressCount()}</strong>
+                </span>
+                {getInputAddressCount() > 0 && (
+                  <span className="address-count-hint">
+                    {t('input.addressCountHint')}
+                  </span>
+                )}
+              </div>
               <textarea
                 ref={textareaRef}
                 className="textarea-field"
@@ -440,35 +787,46 @@ function App() {
               </div>
             )}
             <div className="address-items">
-              {addresses.map((addr, index) => (
-                <div 
-                  key={index} 
-                  className={`address-item ${addr.status} ${selectedAddressIndex === index ? 'selected' : ''}`}
-                  onClick={() => selectAddress(index)}
-                  style={{ cursor: addr.status === 'success' ? 'pointer' : 'default' }}
-                >
-                  <div className="address-content">
-                    <div className="address-text">
-                      {addr.status === 'error' ? '❌ ' : '✅ '}{addr.address}
-                    </div>
-                    {addr.status === 'success' && (
-                      <div className="coordinates">
-                        {addr.lat.toFixed(6)}, {addr.lng.toFixed(6)}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering address selection
-                      removeAddress(index);
-                    }}
-                    className="remove-btn"
-                    title={t('buttons.remove')}
+              {addresses.map((addr, index) => {
+                const groupColor = addr.groupId !== undefined && addressGroups[addr.groupId] 
+                  ? addressGroups[addr.groupId].color 
+                  : 'transparent';
+                
+                return (
+                  <div 
+                    key={index} 
+                    className={`address-item ${addr.status} ${selectedAddressIndex === index ? 'selected' : ''}`}
+                    onClick={() => selectAddress(index)}
+                    style={{ cursor: addr.status === 'success' ? 'pointer' : 'default' }}
                   >
-                    🗑️
-                  </button>
-                </div>
-              ))}
+                    <div className="address-content">
+                      <div className="address-text">
+                        {addr.status === 'error' ? '❌ ' : '✅ '}{addr.address}
+                      </div>
+                      {addr.status === 'success' && (
+                        <div className="coordinates">
+                          {addr.lat.toFixed(6)}, {addr.lng.toFixed(6)}
+                          {addr.groupId !== undefined && (
+                            <span className="group-indicator" style={{ backgroundColor: groupColor }}>
+                              Group {addr.groupId + 1}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering address selection
+                        removeAddress(index);
+                      }}
+                      className="remove-btn"
+                      title={t('buttons.remove')}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </section>
         </div>

@@ -18,6 +18,10 @@
     "placeholder": "Enter addresses (one per line):",
     "placeholderExamples": "Taipei 101, Taiwan\nTokyo Tower, Japan\nEiffel Tower, Paris"
   },
+  "input": {
+    "addressCount": "Addresses in input",
+    "addressCountHint": "addresses ready to be processed"
+  },
   "errors": {
     "geolocationNotSupported": "Geolocation is not supported by this browser.",
     "locationAccessDenied": "Location access denied by user.",
@@ -46,5 +50,19 @@
     "mapTitle": "Open static map image with markers in new tab",
     "kml": "Export as KML",
     "kmlTitle": "Export addresses as KML file for Google Earth"
+  },
+  "grouping": {
+    "title": "Address Grouping",
+    "enable": "Enable Grouping",
+    "mode": "Group by",
+    "distance": "Distance",
+    "time": "Time",
+    "cluster": "Minimum Distance",
+    "distanceThreshold": "Distance Threshold",
+    "timeThreshold": "Time Threshold",
+    "clusterThreshold": "Cluster Distance",
+    "radiusThreshold": "Radius Threshold",
+    "groups": "Groups",
+    "totalAddresses": "Total Addresses"
   }
 }
