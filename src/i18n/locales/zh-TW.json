@@ -1,0 +1,39 @@
+{
+  "app": {
+    "title": "地址地圖",
+    "subtitle": "輸入多個地址（每行一個）在地圖上標記位置",
+    "processing": "處理中...",
+    "addAddresses": "添加地址",
+    "currentLocation": "當前位置",
+    "clearAll": "清除全部",
+    "savedAddresses": "已保存地址",
+    "noAddresses": "尚未添加地址。",
+    "startMessage": "請在上方輸入地址開始使用！",
+    "success": "成功",
+    "failed": "失敗",
+    "latitude": "緯度",
+    "longitude": "經度",
+    "tips": "提示",
+    "tipsContent": "每行輸入一個地址。按 Ctrl+Enter 快速添加地址。",
+    "placeholder": "輸入地址（每行一個）：",
+    "placeholderExamples": "台北101, 台灣\n東京鐵塔, 日本\n艾菲爾鐵塔, 法國"
+  },
+  "errors": {
+    "geolocationNotSupported": "此瀏覽器不支持地理定位。",
+    "locationAccessDenied": "用戶拒絕位置訪問。",
+    "locationUnavailable": "位置信息不可用。",
+    "locationTimeout": "位置請求超時。",
+    "unknownError": "發生未知錯誤。",
+    "addressesNotFound": "個地址無法找到。",
+    "addedSuccessfully": "個地址成功添加。"
+  },
+  "buttons": {
+    "remove": "移除地址",
+    "getLocation": "獲取當前位置",
+    "clearAllTitle": "清除所有地址"
+  },
+  "language": {
+    "switchToChinese": "繁體中文",
+    "switchToEnglish": "English"
+  }
+}

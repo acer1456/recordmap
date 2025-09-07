@@ -4,6 +4,8 @@ A modern, responsive React application that allows users to input multiple addre
 
 ## ✨ Features
 
+- **🌐 Internationalization (i18n)**: Full support for Traditional Chinese and English with easy language switching
+- **Progressive Web App (PWA)**: Installable app with offline support, service worker caching, and native app-like experience
 - **Modern UI Design**: Beautiful gradient backgrounds and card-based layout
 - **Responsive Design**: Fully responsive across all devices (desktop, tablet, mobile)
 - **Interactive Map**: Google Maps integration with custom numbered markers
@@ -13,10 +15,12 @@ A modern, responsive React application that allows users to input multiple addre
 - **Error Handling**: User-friendly error messages
 - **Keyboard Support**: Press Enter to add addresses quickly
 - **Mobile Integration**: Direct integration with native Google Maps app
+- **Offline Support**: Cached Google Maps and fonts for offline use
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
 - npm or yarn
 - Google Maps API Key
@@ -24,17 +28,18 @@ A modern, responsive React application that allows users to input multiple addre
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd recordmap
    ```
-
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
-
 3. **Set up Google Maps API**
+
    - Go to [Google Cloud Console](https://console.cloud.google.com/)
    - Create a new project or select existing one
    - Enable the following APIs:
@@ -45,8 +50,8 @@ A modern, responsive React application that allows users to input multiple addre
      ```
      VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
      ```
-
 4. **Start the development server**
+
    ```bash
    npm run dev
    ```
@@ -57,30 +62,32 @@ A modern, responsive React application that allows users to input multiple addre
 
 1. **Create a new GitHub repository** (or use existing one)
 2. **Initialize Git** (if not already done):
+
    ```bash
    git init
    git add .
    git commit -m "Initial commit"
    ```
-
 3. **Rename repository** to match the base path in `vite.config.ts`:
+
    - If your GitHub username is `yourusername`, rename repo to `recordmap`
    - Or update `vite.config.ts` base path to match your repo name
 
 ### Step 2: Protect Your Environment Variables
 
 1. **Copy environment template**:
+
    ```bash
    cp .env .env.backup
    ```
-
 2. **Remove .env from git tracking** (if already committed):
+
    ```bash
    git rm --cached .env
    git commit -m "Remove .env file from tracking"
    ```
-
 3. **Set up GitHub Secrets**:
+
    - Go to your GitHub repository
    - Click **Settings** → **Secrets and variables** → **Actions**
    - Click **New repository secret**
@@ -90,19 +97,20 @@ A modern, responsive React application that allows users to input multiple addre
 ### Step 3: Deploy
 
 1. **Push to GitHub**:
+
    ```bash
    git remote add origin https://github.com/yourusername/recordmap.git
    git branch -M main
    git push -u origin main
    ```
-
 2. **Enable GitHub Pages**:
+
    - Go to your GitHub repository
    - Click **Settings** → **Pages**
    - Source: **GitHub Actions**
    - The workflow will automatically deploy your site
-
 3. **Access your deployed site**:
+
    - Your site will be available at: `https://yourusername.github.io/recordmap/`
 
 ### Step 4: Update Repository Name (Optional)
@@ -110,14 +118,15 @@ A modern, responsive React application that allows users to input multiple addre
 If you want to use a different repository name:
 
 1. **Update `vite.config.ts`**:
+
    ```typescript
    export default defineConfig({
      plugins: [react()],
      base: '/your-repo-name/', // Change this to match your repo name
    })
    ```
-
 2. **Update workflow file** `.github/workflows/deploy.yml`:
+
    ```yaml
    - name: Deploy to GitHub Pages
      uses: peaceiris/actions-gh-pages@v3
@@ -142,13 +151,70 @@ If you want to use a different repository name:
 - **Vite** - Build tool and dev server
 - **Google Maps JavaScript API** - Map functionality
 - **@react-google-maps/api** - React Google Maps integration
+- **React i18next** - Internationalization framework
+- **i18next** - Core internationalization library
+- **i18next Browser LanguageDetector** - Automatic language detection
+- **Vite PWA Plugin** - Progressive Web App functionality
+- **Workbox** - Service worker and caching strategies
+- **Sharp** - Image processing for PWA icons
 - **CSS3** - Modern styling with gradients and animations
+
+## 🌐 Internationalization (i18n)
+
+This application supports multiple languages with full internationalization:
+
+### Supported Languages
+- **繁體中文 (zh-TW)** - Traditional Chinese (Default)
+- **English (en)** - English
+
+### Language Features
+- **Automatic Detection**: Detects browser language preference
+- **Persistent Selection**: Remembers user's language choice
+- **Real-time Switching**: Instant language switching without page reload
+- **Complete Coverage**: All UI text, messages, and labels are translated
+
+### How to Use
+1. Click the language switcher button in the header (🇹🇼 中文 / 🇺🇸 EN)
+2. The interface will instantly switch to the selected language
+3. Your language preference is automatically saved
+
+### Adding New Languages
+To add support for additional languages:
+
+1. Create a new JSON file in `src/i18n/locales/` (e.g., `fr.json` for French)
+2. Add the language to the resources in `src/i18n/i18n.ts`
+3. Update the language switcher component to include the new language option
 
 ## 📱 Mobile Features
 
 - **Native App Integration**: Direct opening in Google Maps mobile app
 - **Touch Optimized**: Responsive design for mobile devices
 - **Geolocation**: Access to device location services
+
+## 🏠 Progressive Web App (PWA)
+
+This application is built as a Progressive Web App with the following features:
+
+### Installation
+
+- **Chrome/Edge**: Click the install icon in the address bar or use the app menu
+- **Firefox**: Click the install button in the page info or use the app menu
+- **Safari (iOS)**: Use the Share button → "Add to Home Screen"
+- **Android**: Use "Add to Home Screen" from the browser menu
+
+### Offline Support
+
+- **Cached Maps**: Google Maps tiles and fonts are cached for offline use
+- **Service Worker**: Automatic background updates and caching
+- **Fast Loading**: Pre-cached resources for instant loading
+
+### PWA Features
+
+- **Installable**: Can be installed like a native app
+- **Offline Capable**: Works without internet connection (limited functionality)
+- **Background Sync**: Automatic updates when online
+- **Push Notifications**: Ready for future notification features
+- **Native Feel**: App-like experience on mobile devices
 
 ## 🔒 Security Notes
 
@@ -163,7 +229,8 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 **Live Demo**: [https://yourusername.github.io/recordmap/](https://yourusername.github.io/recordmap/)
-   ```
+
+```
 
 5. **Open your browser**
    - Navigate to `http://localhost:5173/`

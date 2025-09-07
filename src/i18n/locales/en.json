@@ -1,0 +1,39 @@
+{
+  "app": {
+    "title": "Address Map",
+    "subtitle": "Enter multiple addresses (one per line) to mark locations on the map",
+    "processing": "Processing...",
+    "addAddresses": "Add Addresses",
+    "currentLocation": "Current Location",
+    "clearAll": "Clear All",
+    "savedAddresses": "Saved Addresses",
+    "noAddresses": "No addresses added yet.",
+    "startMessage": "Start by entering an address above!",
+    "success": "Success",
+    "failed": "Failed",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "tips": "Tips",
+    "tipsContent": "Enter one address per line. Press Ctrl+Enter to add addresses quickly.",
+    "placeholder": "Enter addresses (one per line):",
+    "placeholderExamples": "Taipei 101, Taiwan\nTokyo Tower, Japan\nEiffel Tower, Paris"
+  },
+  "errors": {
+    "geolocationNotSupported": "Geolocation is not supported by this browser.",
+    "locationAccessDenied": "Location access denied by user.",
+    "locationUnavailable": "Location information is unavailable.",
+    "locationTimeout": "Location request timed out.",
+    "unknownError": "An unknown error occurred.",
+    "addressesNotFound": "addresses could not be found.",
+    "addedSuccessfully": "addresses successfully."
+  },
+  "buttons": {
+    "remove": "Remove address",
+    "getLocation": "Get current location",
+    "clearAllTitle": "Clear all addresses"
+  },
+  "language": {
+    "switchToChinese": "繁體中文",
+    "switchToEnglish": "English"
+  }
+}

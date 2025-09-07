@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './components/LanguageSwitcher';
 import './App.css';
 
 interface Address {
@@ -20,6 +22,7 @@ const center = {
 };
 
 function App() {
+  const { t } = useTranslation();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [inputAddresses, setInputAddresses] = useState('');
   const [error, setError] = useState('');
@@ -88,13 +91,13 @@ function App() {
     const errorCount = newAddresses.filter(addr => addr.status === 'error').length;
 
     if (errorCount > 0) {
-      setError(`Added ${successCount} addresses successfully. ${errorCount} addresses could not be found.`);
+      setError(`${t('errors.addedSuccessfully', { count: successCount })} ${errorCount} ${t('errors.addressesNotFound')}`);
     }
   };
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by this browser.');
+      setError(t('errors.geolocationNotSupported'));
       return;
     }
 
@@ -118,16 +121,16 @@ function App() {
         setIsLoading(false);
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            setError('Location access denied by user.');
+            setError(t('errors.locationAccessDenied'));
             break;
           case error.POSITION_UNAVAILABLE:
-            setError('Location information is unavailable.');
+            setError(t('errors.locationUnavailable'));
             break;
           case error.TIMEOUT:
-            setError('Location request timed out.');
+            setError(t('errors.locationTimeout'));
             break;
           default:
-            setError('An unknown error occurred.');
+            setError(t('errors.unknownError'));
             break;
         }
       },
@@ -172,8 +175,11 @@ function App() {
     <div className="app-container">
       <div className="main-content">
         <header className="header">
-          <h1>🗺️ Address Map</h1>
-          <p>Enter multiple addresses (one per line) to mark locations on the map</p>
+          <div className="header-content">
+            <h1>🗺️ {t('app.title')}</h1>
+            <LanguageSwitcher />
+          </div>
+          <p>{t('app.subtitle')}</p>
         </header>
 
         <div className="content-wrapper">
@@ -243,8 +249,8 @@ function App() {
                               📍 {addresses[selectedMarkerIndex].address}
                             </h4>
                             <p style={{ margin: '0', fontSize: '14px', color: '#64748b' }}>
-                              經度: {addresses[selectedMarkerIndex].lat.toFixed(6)}<br/>
-                              緯度: {addresses[selectedMarkerIndex].lng.toFixed(6)}
+                              {t('app.latitude')}: {addresses[selectedMarkerIndex].lat.toFixed(6)}<br/>
+                              {t('app.longitude')}: {addresses[selectedMarkerIndex].lng.toFixed(6)}
                             </p>
                           </div>
                         </InfoWindow>
@@ -263,24 +269,24 @@ function App() {
                 onClick={addAddresses}
                 disabled={!inputAddresses.trim() || isLoading}
               >
-                {isLoading ? `🔍 Processing... (${progress.current}/${progress.total})` : '➕ Add Addresses'}
+                {isLoading ? `🔍 ${t('app.processing')} (${progress.current}/${progress.total})` : `➕ ${t('app.addAddresses')}`}
               </button>
               <button
                 className="location-btn"
                 onClick={getCurrentLocation}
                 disabled={isLoading}
-                title="Get current location"
+                title={t('buttons.getLocation')}
               >
-                📍 Current Location
+                📍 {t('app.currentLocation')}
               </button>
               {addresses.length > 0 && (
                 <button
                   className="clear-btn"
                   onClick={clearAllAddresses}
                   disabled={isLoading}
-                  title="Clear all addresses"
+                  title={t('buttons.clearAllTitle')}
                 >
-                  🗑️ Clear All
+                  🗑️ {t('app.clearAll')}
                 </button>
               )}
             </div>
@@ -291,13 +297,13 @@ function App() {
                 value={inputAddresses}
                 onChange={(e) => setInputAddresses(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Enter addresses (one per line):&#10;Taipei 101, Taiwan&#10;Tokyo Tower, Japan&#10;Eiffel Tower, Paris"
+                placeholder={`${t('app.placeholder')}\n${t('app.placeholderExamples')}`}
                 disabled={isLoading}
                 rows={6}
               />
             </div>
             <div className="input-help">
-              💡 <strong>Tips:</strong> Enter one address per line. Press Ctrl+Enter to add addresses quickly.
+              💡 <strong>{t('app.tips')}:</strong> {t('app.tipsContent')}
             </div>
             {error && <div className="error-message">⚠️ {error}</div>}
           </section>
@@ -305,7 +311,7 @@ function App() {
           {/* Address List Section - Bottom */}
           <section className="address-list">
             <h3>
-              📍 Saved Addresses
+              📍 {t('app.savedAddresses')}
               <span className="address-count">{addresses.length}</span>
             </h3>
             {addresses.length === 0 ? (
@@ -313,15 +319,15 @@ function App() {
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                 </svg>
-                <p>No addresses added yet.<br/>Start by entering an address above!</p>
+                <p>{t('app.noAddresses')}<br/>{t('app.startMessage')}</p>
               </div>
             ) : (
               <div className="address-stats">
                 <div className="stat-item">
-                  ✅ Success: {addresses.filter(addr => addr.status === 'success').length}
+                  ✅ {t('app.success')}: {addresses.filter(addr => addr.status === 'success').length}
                 </div>
                 <div className="stat-item">
-                  ❌ Failed: {addresses.filter(addr => addr.status === 'error').length}
+                  ❌ {t('app.failed')}: {addresses.filter(addr => addr.status === 'error').length}
                 </div>
               </div>
             )}
@@ -349,7 +355,7 @@ function App() {
                       removeAddress(index);
                     }}
                     className="remove-btn"
-                    title="Remove address"
+                    title={t('buttons.remove')}
                   >
                     🗑️
                   </button>
